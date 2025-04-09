@@ -1,0 +1,180 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// جدول المستخدمين
+model User {
+  id             Int             @id @default(autoincrement())
+  email          String          @unique
+  phone          String?         @unique
+  password       String
+  name           String
+  role           Role            @default(USER)
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  
+  favorites      Favorite[]      // السيارات المفضلة
+  browserHistory BrowserHistory[] // سجل التصفح
+  priceAlerts    PriceAlert[]    // إشعارات الأسعار
+}
+
+// أدوار المستخدمين
+enum Role {
+  ADMIN
+  USER
+}
+
+// جدول السيارات
+model Car {
+  id                 Int             @id @default(autoincrement())
+  title              String
+  description        String          @db.Text
+  type               CarType         // نوع السيارة (جديدة/مستعملة)
+  category           CarCategory     // فئة السيارة (فاخرة/اقتصادية/الخ)
+  make               String          // الشركة المصنعة
+  model              String          // موديل السيارة
+  year               Int             // سنة الصنع
+  mileage            Int?            // المسافة المقطوعة
+  price              Float           // السعر
+  location           String?         // الموقع
+  contactNumber      String          // رقم واتس اب للتواصل
+  isFeatured         Boolean         @default(false) // هل هي معروضة في العروض المميزة
+  views              Int             @default(0)     // عدد المشاهدات
+  
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  
+  images             CarImage[]      // صور السيارة
+  specifications     Specification[] // مواصفات السيارة
+  favorites          Favorite[]      // المستخدمين الذين أضافوها للمفضلة
+  browserHistory     BrowserHistory[] // سجل التصفح
+  priceAlerts        PriceAlert[]    // إشعارات الأسعار
+}
+
+// نوع السيارة
+enum CarType {
+  NEW
+  USED
+}
+
+// فئة السيارة
+enum CarCategory {
+  LUXURY
+  ECONOMY
+  SUV
+  SPORTS
+  SEDAN
+  OTHER
+}
+
+// صور السيارة
+model CarImage {
+  id        Int      @id @default(autoincrement())
+  url       String   // رابط الصورة
+  isMain    Boolean  @default(false) // هل هي الصورة الرئيسية
+  is360View Boolean  @default(false) // هل هي عرض 360
+  
+  carId     Int
+  car       Car      @relation(fields: [carId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// مواصفات السيارة
+model Specification {
+  id        Int      @id @default(autoincrement())
+  key       String   // اسم المواصفة (مثل: المحرك، ناقل الحركة، الخ)
+  value     String   // قيمة المواصفة
+
+  carId     Int
+  car       Car      @relation(fields: [carId], references: [id], onDelete: Cascade)
+}
+
+// السيارات المفضلة
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  carId     Int
+  car       Car      @relation(fields: [carId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+
+  @@unique([userId, carId]) // لضمان عدم تكرار الإضافة للمفضلة
+}
+
+// سجل التصفح
+model BrowserHistory {
+  id        Int      @id @default(autoincrement())
+  
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  carId     Int
+  car       Car      @relation(fields: [carId], references: [id], onDelete: Cascade)
+  
+  viewedAt  DateTime @default(now())
+}
+
+// إشعارات الأسعار
+model PriceAlert {
+  id            Int      @id @default(autoincrement())
+  targetPrice   Float    // السعر المستهدف
+  isTriggered   Boolean  @default(false) // هل تم تفعيل الإشعار
+  
+  userId        Int
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  carId         Int
+  car           Car      @relation(fields: [carId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// صفحات المحتوى الثابتة
+model StaticPage {
+  id        Int      @id @default(autoincrement())
+  title     String   // عنوان الصفحة
+  content   String   @db.Text // محتوى الصفحة
+  slug      String   @unique // المسار (مثل: about-us, privacy-policy)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// العروض الخاصة والإعلانات
+model Promotion {
+  id          Int      @id @default(autoincrement())
+  title       String   // عنوان الإعلان
+  description String   @db.Text // وصف الإعلان
+  imageUrl    String   // رابط صورة الإعلان
+  linkUrl     String?  // رابط الإعلان إن وجد
+  startDate   DateTime // تاريخ بداية العرض
+  endDate     DateTime // تاريخ نهاية العرض
+  isActive    Boolean  @default(true) // هل الإعلان نشط
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// إحصائيات التطبيق
+model Statistic {
+  id            Int      @id @default(autoincrement())
+  totalVisits   Int      @default(0) // إجمالي الزيارات
+  date          DateTime @default(now()) @db.Date // تاريخ الإحصائية
+  
+  @@unique([date]) // لضمان عدم تكرار الإحصائية لنفس اليوم
+}
