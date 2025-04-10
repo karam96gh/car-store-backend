@@ -29,32 +29,59 @@ class FileStorageService {
       if (!file) {
         throw new Error('لم يتم توفير ملف للتحميل');
       }
-
+  
+      console.log('معالجة ملف للتحميل:', {
+        originalname: file.originalname,
+        path: file.path,
+        size: file.size,
+        mimetype: file.mimetype
+      });
+  
       // إنشاء مسار الملف
       const uploadPath = path.join(this.config.upload.path, subDirectory);
-
-      // إنشاء المجلد إذا لم يكن موجودًا
       await this._ensureDirectoryExists(uploadPath);
-
+  
       // إنشاء اسم ملف فريد
       const timestamp = Date.now();
       const extension = path.extname(file.originalname);
       const fileName = `${timestamp}_${this._sanitizeFileName(path.basename(file.originalname, extension))}${extension}`;
-      
-      // مسار الملف الكامل
       const filePath = path.join(uploadPath, fileName);
+  
+      // إذا كان الملف قد تم حفظه بالفعل بواسطة multer، فلا نحتاج إلى نسخه مرة أخرى
+      // بدلاً من ذلك، نقوم بإنشاء رابط للملف فقط
+      if (file.path && file.path.includes(this.config.upload.dir)) {
+        console.log('الملف تم تحميله بالفعل بواسطة multer في:', file.path);
+        
+        // استخراج المسار النسبي من المسار المطلق
+        let relativePath = file.path.split(this.config.upload.path)[1];
+        if (relativePath.startsWith('/') || relativePath.startsWith('\\')) {
+            relativePath = relativePath.substring(1);
+        }
+        
+        // بناء URL الملف
+        const fileUrl = `/${this.config.upload.dir}/${relativePath.replace(/\\/g, '/')}`;
+        
+        console.log('استخدام المسار الحالي للملف:', fileUrl);
+        
+        return {
+            url: fileUrl,
+            fileName: path.basename(file.path),
+            originalName: file.originalname,
+            size: file.size,
+            mimetype: file.mimetype
+        };
+    }
+      console.log('نسخ الملف من:', file.path, 'إلى:', filePath);
       
-      // حفظ الملف
+      // حفظ الملف - اعتماداً على نوع الملف المقدم
       if (file.buffer) {
-        // إذا كان الملف هو كائن Buffer من Multer
         await fs.promises.writeFile(filePath, file.buffer);
       } else if (file.path) {
-        // إذا كان الملف مرفوعًا مسبقًا
         await fs.promises.copyFile(file.path, filePath);
       } else {
         throw new Error('صيغة الملف غير مدعومة');
       }
-
+  
       // إعداد URL الملف النسبي
       const fileUrl = path.join(
         '/',
@@ -62,7 +89,7 @@ class FileStorageService {
         subDirectory,
         fileName
       ).replace(/\\/g, '/');
-
+  
       return {
         url: fileUrl,
         fileName,
@@ -71,6 +98,7 @@ class FileStorageService {
         mimetype: file.mimetype
       };
     } catch (error) {
+      console.error('خطأ في تحميل الملف:', error);
       throw new Error(`فشل تحميل الملف: ${error.message}`);
     }
   }

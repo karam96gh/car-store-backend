@@ -12,6 +12,7 @@ const { getConfig } = require('../../infrastructure/config/config');
  * @param {string} subDirectory - المجلد الفرعي للتخزين
  * @returns {Object} - إعدادات التخزين
  */
+// دعنا نفحص إعدادات multer
 const configStorage = (subDirectory = '') => {
   const config = getConfig();
   
@@ -42,7 +43,7 @@ const configStorage = (subDirectory = '') => {
  * @param {Array} allowedTypes - أنواع الملفات المسموح بها
  * @returns {Function} - دالة الفلتر
  */
-const fileFilter = (allowedTypes = ['image/jpeg', 'image/png','image/jpg', 'image/webp']) => {
+const fileFilter = (allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'application/octet-stream']) => {
   return (req, file, cb) => {
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
@@ -60,12 +61,43 @@ const fileFilter = (allowedTypes = ['image/jpeg', 'image/png','image/jpg', 'imag
 const uploadImage = (subDirectory = 'images') => {
   const config = getConfig();
   
+  // طباعة للتصحيح
+  console.log('إعداد Multer لمجلد:', subDirectory);
+  console.log('مسار التحميل الكامل:', path.join(config.upload.path, subDirectory));
+  
   return multer({
-    storage: configStorage(subDirectory),
+    storage: multer.diskStorage({
+      destination: (req, file, cb) => {
+        const uploadPath = path.join(config.upload.path, subDirectory);
+        if (!fs.existsSync(uploadPath)) {
+          fs.mkdirSync(uploadPath, { recursive: true });
+        }
+        
+        console.log('تخزين الملف في:', uploadPath);
+        cb(null, uploadPath);
+      },
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = path.extname(file.originalname);
+        const filename = uniqueSuffix + ext;
+        
+        console.log('اسم الملف المخزن:', filename);
+        cb(null, filename);
+      }
+    }),
     limits: {
       fileSize: config.upload.maxSize
     },
-    fileFilter: fileFilter(['image/jpeg', 'image/png','image/jpg', 'image/webp'])
+    fileFilter: (req, file, cb) => {
+      console.log('فحص الملف المرفوع:', file.originalname, file.mimetype);
+      
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'application/octet-stream'];
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('نوع الملف غير مدعوم'), false);
+      }
+    }
   });
 };
 
@@ -83,7 +115,7 @@ const uploadMultipleImages = (subDirectory = 'images', maxCount = 5) => {
     limits: {
       fileSize: config.upload.maxSize
     },
-    fileFilter: fileFilter(['image/jpeg', 'image/png', 'image/jpg','image/webp'])
+    fileFilter: fileFilter(['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'application/octet-stream'])
   }).array('images', maxCount);
 };
 

@@ -98,11 +98,16 @@ class AdminCarController {
     async addCarImage(req, res, next) {
       try {
         const { id } = req.params;
-        const file = req.file;
-        const { isMain, is360View } = req.body;
+    
+        console.log('=== تفاصيل طلب رفع الصورة ===');
+        console.log('Headers:', req.headers);
+        console.log('Body:', req.body);
+        console.log('File:', req.file);
+        console.log('Files:', req.files);
         
         // التحقق من وجود الملف
-        if (!file) {
+        if (!req.file) {
+          console.error('لم يتم العثور على ملف في الطلب. تأكد من إرسال الملف باسم "image".');
           return res.status(400).json({
             success: false,
             message: 'الرجاء توفير صورة للتحميل'
@@ -115,21 +120,20 @@ class AdminCarController {
           is360View: is360View === 'true' || is360View === true
         };
         
+        console.log('إضافة الصورة بالبيانات:', imageData);
+        
         // إضافة الصورة
         const image = await this.carUseCases.addCarImage(id, file, imageData);
-  
+        
+        console.log('تمت إضافة الصورة بنجاح:', image);
+        
         res.status(201).json({
           success: true,
           message: 'تم إضافة الصورة بنجاح',
           data: image
         });
       } catch (error) {
-        if (error.message === 'السيارة غير موجودة') {
-          return res.status(404).json({
-            success: false,
-            message: error.message
-          });
-        }
+        console.error('خطأ في إضافة الصورة:', error);
         next(error);
       }
     }
