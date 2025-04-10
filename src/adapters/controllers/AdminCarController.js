@@ -116,14 +116,14 @@ class AdminCarController {
         
         // إعداد بيانات الصورة
         const imageData = {
-          isMain: isMain === 'true' || isMain === true,
-          is360View: is360View === 'true' || is360View === true
+          isMain: req.body.isMain === 'true' || req.body.isMain === true,
+          is360View: req.body.is360View === 'true' || req.body.is360View === true
         };
         
         console.log('إضافة الصورة بالبيانات:', imageData);
         
         // إضافة الصورة
-        const image = await this.carUseCases.addCarImage(id, file, imageData);
+        const image = await this.carUseCases.addCarImage(id, req.file, imageData);
         
         console.log('تمت إضافة الصورة بنجاح:', image);
         
