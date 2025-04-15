@@ -110,6 +110,9 @@ class FileStorageService {
    */
   async deleteFile(fileUrl) {
     try {
+      // طباعة للتصحيح
+      console.log(`محاولة حذف الملف: ${fileUrl}`);
+      
       // تحويل URL إلى مسار الملف
       const uploadDirName = `/${this.config.upload.dir}/`;
       let filePath;
@@ -120,6 +123,8 @@ class FileStorageService {
       } else {
         filePath = path.join(this.config.upload.path, path.basename(fileUrl));
       }
+      
+      console.log(`المسار المستخرج للملف: ${filePath}`);
 
       // التحقق من وجود الملف
       const fileExists = await exists(filePath);
@@ -130,9 +135,12 @@ class FileStorageService {
       }
 
       // حذف الملف
+      console.log(`جاري حذف الملف الموجود: ${filePath}`);
       await unlink(filePath);
+      console.log(`تم حذف الملف بنجاح: ${filePath}`);
       return true;
     } catch (error) {
+      console.error(`خطأ في حذف الملف: ${error.message}`);
       throw new Error(`فشل حذف الملف: ${error.message}`);
     }
   }

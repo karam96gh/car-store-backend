@@ -174,18 +174,36 @@ class CarUseCases {
    * @returns {Promise<boolean>} - هل تم الحذف بنجاح
    */
   async deleteCarImage(imageId) {
-    // الحصول على بيانات الصورة
-    const image = await this.carRepository.getImageById(imageId);
-    
-    if (!image) {
-      throw new Error('الصورة غير موجودة');
+    try {
+      // الحصول على بيانات الصورة
+      console.log(`جاري البحث عن الصورة برقم: ${imageId}`);
+      const image = await this.carRepository.getImageById(imageId);
+      
+      if (!image) {
+        console.error('الصورة غير موجودة في قاعدة البيانات');
+        throw new Error('الصورة غير موجودة');
+      }
+      
+      console.log(`تم العثور على الصورة. URL: ${image.url}`);
+      
+      // حذف الملف من خدمة التخزين
+      try {
+        await this.storageService.deleteFile(image.url);
+        console.log('تم حذف الصورة من التخزين');
+      } catch (storageError) {
+        console.warn('لم يتم حذف الصورة من التخزين بنجاح، لكن سنستمر في الحذف من قاعدة البيانات:', storageError.message);
+        // سنستمر بحذف الإشارة في قاعدة البيانات حتى لو فشل حذف الملف
+      }
+      
+      // حذف الصورة من قاعدة البيانات
+      const result = await this.carRepository.deleteImage(imageId);
+      console.log('تم حذف الصورة من قاعدة البيانات بنجاح');
+      
+      return result;
+    } catch (error) {
+      console.error('خطأ في حذف الصورة:', error);
+      throw error;
     }
-    
-    // حذف الملف من خدمة التخزين
-    await this.storageService.deleteFile(image.url);
-    
-    // حذف الصورة من قاعدة البيانات
-    return this.carRepository.deleteImage(imageId);
   }
 
   /**

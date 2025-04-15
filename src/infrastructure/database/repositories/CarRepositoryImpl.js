@@ -36,6 +36,7 @@ class CarRepositoryImpl extends CarRepository {
 
       return new Car(car);
     } catch (error) {
+      console.error('خطأ في إنشاء السيارة:', error);
       throw new Error(`فشل إنشاء السيارة: ${error.message}`);
     }
   }
@@ -91,6 +92,7 @@ class CarRepositoryImpl extends CarRepository {
         }
       };
     } catch (error) {
+      console.error('خطأ في الحصول على السيارات:', error);
       throw new Error(`فشل الحصول على السيارات: ${error.message}`);
     }
   }
@@ -116,6 +118,7 @@ class CarRepositoryImpl extends CarRepository {
 
       return new Car(car);
     } catch (error) {
+      console.error('خطأ في الحصول على السيارة:', error);
       throw new Error(`فشل الحصول على السيارة: ${error.message}`);
     }
   }
@@ -143,6 +146,7 @@ class CarRepositoryImpl extends CarRepository {
 
       return new Car(car);
     } catch (error) {
+      console.error('خطأ في تحديث السيارة:', error);
       throw new Error(`فشل تحديث السيارة: ${error.message}`);
     }
   }
@@ -160,6 +164,7 @@ class CarRepositoryImpl extends CarRepository {
 
       return true;
     } catch (error) {
+      console.error('خطأ في حذف السيارة:', error);
       throw new Error(`فشل حذف السيارة: ${error.message}`);
     }
   }
@@ -186,6 +191,7 @@ class CarRepositoryImpl extends CarRepository {
 
       return new Car(car);
     } catch (error) {
+      console.error('خطأ في زيادة عدد المشاهدات:', error);
       throw new Error(`فشل زيادة عدد المشاهدات: ${error.message}`);
     }
   }
@@ -239,6 +245,7 @@ class CarRepositoryImpl extends CarRepository {
         }
       };
     } catch (error) {
+      console.error('خطأ في البحث عن السيارات:', error);
       throw new Error(`فشل البحث عن السيارات: ${error.message}`);
     }
   }
@@ -266,6 +273,7 @@ class CarRepositoryImpl extends CarRepository {
 
       return featuredCars.map(car => new Car(car));
     } catch (error) {
+      console.error('خطأ في الحصول على السيارات المميزة:', error);
       throw new Error(`فشل الحصول على السيارات المميزة: ${error.message}`);
     }
   }
@@ -290,6 +298,7 @@ class CarRepositoryImpl extends CarRepository {
 
       return mostViewedCars.map(car => new Car(car));
     } catch (error) {
+      console.error('خطأ في الحصول على السيارات الأكثر مشاهدة:', error);
       throw new Error(`فشل الحصول على السيارات الأكثر مشاهدة: ${error.message}`);
     }
   }
@@ -311,6 +320,7 @@ class CarRepositoryImpl extends CarRepository {
 
       return image;
     } catch (error) {
+      console.error('خطأ في إضافة الصورة:', error);
       throw new Error(`فشل إضافة الصورة: ${error.message}`);
     }
   }
@@ -322,10 +332,15 @@ class CarRepositoryImpl extends CarRepository {
    */
   async getImageById(imageId) {
     try {
-      return await prisma.carImage.findUnique({
+      const image = await prisma.carImage.findUnique({
         where: { id: parseInt(imageId) }
       });
+      
+      console.log(`تم العثور على الصورة: ${JSON.stringify(image)}`);
+      
+      return image;
     } catch (error) {
+      console.error('خطأ في الحصول على الصورة:', error);
       throw new Error(`فشل الحصول على الصورة: ${error.message}`);
     }
   }
@@ -337,12 +352,22 @@ class CarRepositoryImpl extends CarRepository {
    */
   async deleteImage(imageId) {
     try {
+      console.log(`حذف الصورة رقم ${imageId} من قاعدة البيانات`);
+      
       await prisma.carImage.delete({
         where: { id: parseInt(imageId) }
       });
+      
+      console.log('تم حذف الصورة من قاعدة البيانات بنجاح');
 
       return true;
     } catch (error) {
+      console.error('خطأ في حذف الصورة:', error);
+      
+      if (error.code === 'P2025') {
+        throw new Error('الصورة غير موجودة');
+      }
+      
       throw new Error(`فشل حذف الصورة: ${error.message}`);
     }
   }
@@ -364,6 +389,7 @@ class CarRepositoryImpl extends CarRepository {
 
       return spec;
     } catch (error) {
+      console.error('خطأ في إضافة المواصفة:', error);
       throw new Error(`فشل إضافة المواصفة: ${error.message}`);
     }
   }
@@ -381,6 +407,7 @@ class CarRepositoryImpl extends CarRepository {
 
       return true;
     } catch (error) {
+      console.error('خطأ في حذف المواصفة:', error);
       throw new Error(`فشل حذف المواصفة: ${error.message}`);
     }
   }
@@ -395,131 +422,8 @@ class CarRepositoryImpl extends CarRepository {
       const where = this._buildWhereClause(filters);
       return await prisma.car.count({ where });
     } catch (error) {
+      console.error('خطأ في عد السيارات:', error);
       throw new Error(`فشل عد السيارات: ${error.message}`);
-    }
-  }
-
-  /**
-   * عدد السيارات حسب الفئة
-   * @returns {Promise<Object>} - عدد السيارات حسب الفئة
-   */
-  async countByCategory() {
-    try {
-      const categories = Object.values(prisma.CarCategory);
-      const result = {};
-
-      for (const category of categories) {
-        const count = await prisma.car.count({
-          where: { category }
-        });
-        result[category] = count;
-      }
-
-      return result;
-    } catch (error) {
-      throw new Error(`فشل عد السيارات حسب الفئة: ${error.message}`);
-    }
-  }
-
-  /**
-   * عدد السيارات حسب الشركة المصنعة
-   * @param {number} limit - عدد الشركات
-   * @returns {Promise<Array>} - عدد السيارات حسب الشركة المصنعة
-   */
-  async countByMake(limit = 10) {
-    try {
-      const makes = await prisma.car.groupBy({
-        by: ['make'],
-        _count: {
-          make: true
-        },
-        orderBy: {
-          _count: {
-            make: 'desc'
-          }
-        },
-        take: limit
-      });
-
-      return makes.map(item => ({
-        make: item.make,
-        count: item._count.make
-      }));
-    } catch (error) {
-      throw new Error(`فشل عد السيارات حسب الشركة المصنعة: ${error.message}`);
-    }
-  }
-
-  /**
-   * متوسط سعر السيارات
-   * @param {Object} filters - مرشحات البحث
-   * @returns {Promise<number>} - متوسط السعر
-   */
-  async getAveragePrice(filters = {}) {
-    try {
-      const where = this._buildWhereClause(filters);
-      
-      const result = await prisma.car.aggregate({
-        where,
-        _avg: {
-          price: true
-        }
-      });
-
-      return result._avg.price || 0;
-    } catch (error) {
-      throw new Error(`فشل حساب متوسط السعر: ${error.message}`);
-    }
-  }
-
-  /**
-   * إحصاءات السيارات حسب السنة
-   * @returns {Promise<Array>} - إحصاءات السيارات حسب السنة
-   */
-  async countByYear() {
-    try {
-      const years = await prisma.car.groupBy({
-        by: ['year'],
-        _count: {
-          year: true
-        },
-        orderBy: {
-          year: 'desc'
-        }
-      });
-
-      return years.map(item => ({
-        year: item.year,
-        count: item._count.year
-      }));
-    } catch (error) {
-      throw new Error(`فشل عد السيارات حسب السنة: ${error.message}`);
-    }
-  }
-
-  /**
-   * إحصاءات السيارات المضافة مؤخرًا
-   * @param {number} days - عدد الأيام
-   * @returns {Promise<Array>} - إحصاءات السيارات المضافة مؤخرًا
-   */
-  async getRecentlyAddedStats(days = 30) {
-    try {
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - days);
-      
-      const stats = await prisma.$queryRaw`
-        SELECT 
-          DATE(created_at) as date, 
-          COUNT(*) as count 
-        FROM Car 
-        WHERE created_at >= ${startDate}
-        GROUP BY DATE(created_at)
-        ORDER BY date ASC
-      `;
-
-      return stats;
-    } catch (error) {
-      throw new Error(`فشل الحصول على إحصاءات السيارات المضافة مؤخرًا: ${error.message}`);
     }
   }
 
