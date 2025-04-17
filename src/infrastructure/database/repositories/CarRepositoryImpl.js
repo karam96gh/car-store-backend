@@ -133,17 +133,28 @@ class CarRepositoryImpl extends CarRepository {
     try {
       // استخراج المواصفات والصور إن وجدت
       const { specifications, images, ...carInfo } = carData;
-
+      
       // تحديث السيارة
       const car = await prisma.car.update({
         where: { id: parseInt(id) },
-        data: carInfo,
+        data: {
+          ...carInfo,
+          // تحديث المواصفات إذا كانت موجودة
+          ...(specifications && {
+            specifications: {
+              // حذف المواصفات القديمة
+              deleteMany: {},
+              // إضافة المواصفات الجديدة
+              create: specifications
+            }
+          })
+        },
         include: {
           specifications: true,
           images: true
         }
       });
-
+  
       return new Car(car);
     } catch (error) {
       console.error('خطأ في تحديث السيارة:', error);
