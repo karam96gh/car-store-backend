@@ -16,8 +16,16 @@ class CarUseCases {
    * @returns {Promise<Object>} - السيارة المنشأة
    */
   async createCar(carData) {
-    // إنشاء كيان سيارة
-    const car = new Car(carData);
+    // معالجة الأبعاد إذا تم توفيرها كحقول منفصلة
+    const dimensions = this._processDimensions(carData);
+    
+    // إنشاء كيان سيارة مع الأبعاد
+    const carDataWithDimensions = {
+      ...carData,
+      dimensions
+    };
+    
+    const car = new Car(carDataWithDimensions);
     
     // التحقق من صحة البيانات
     car.validate();
@@ -25,6 +33,120 @@ class CarUseCases {
     // حفظ السيارة في قاعدة البيانات
     return this.carRepository.create(car);
   }
+
+  /**
+   * تحديث سيارة
+   * @param {number} id - معرف السيارة
+   * @param {Object} carData - بيانات التحديث
+   * @returns {Promise<Object>} - السيارة المحدثة
+   */
+  async updateCar(id, carData) {
+    // التحقق من وجود السيارة
+    const existingCar = await this.carRepository.findById(id);
+    
+    if (!existingCar) {
+      throw new Error('السيارة غير موجودة');
+    }
+    
+    // معالجة الأبعاد إذا تم توفيرها كحقول منفصلة
+    const dimensions = this._processDimensions(carData);
+    
+    // دمج البيانات الحالية مع التحديث
+    const updatedCarData = { 
+      ...existingCar, 
+      ...carData,
+      dimensions: dimensions || existingCar.dimensions
+    };
+    
+    // إنشاء كيان سيارة محدث
+    const updatedCar = new Car(updatedCarData);
+    
+    // التحقق من صحة البيانات
+    updatedCar.validate();
+    
+    // حفظ التحديث في قاعدة البيانات
+    return this.carRepository.update(id, updatedCar);
+  }
+
+  /**
+   * معالجة بيانات الأبعاد
+   * @private
+   * @param {Object} carData - بيانات السيارة
+   * @returns {Object|null} - كائن الأبعاد أو null
+   */
+  _processDimensions(carData) {
+    const { dimensionLength, dimensionWidth, dimensionHeight, ...rest } = carData;
+    
+    // التحقق من وجود أي من حقول الأبعاد
+    if (dimensionLength || dimensionWidth || dimensionHeight || 
+        (carData.dimensions && Object.keys(carData.dimensions).length > 0)) {
+      
+      // إذا كان هناك كائن أبعاد جاهز، استخدمه
+      if (carData.dimensions) {
+        return carData.dimensions;
+      }
+      
+      // وإلا قم بإنشاء كائن جديد
+      const dimensions = {};
+      
+      if (dimensionLength) dimensions.length = parseFloat(dimensionLength);
+      if (dimensionWidth) dimensions.width = parseFloat(dimensionWidth);
+      if (dimensionHeight) dimensions.height = parseFloat(dimensionHeight);
+      
+      return Object.keys(dimensions).length > 0 ? dimensions : null;
+    }
+    
+    return null;
+  }
+
+  /**
+   * الحصول على سيارات مشابهة
+   * @param {number} carId - معرف السيارة
+   * @param {number} limit - عدد السيارات
+   * @returns {Promise<Array>} - قائمة السيارات المشابهة
+   */
+  async getSimilarCars(carId, limit = 6) {
+    // الحصول على السيارة
+    const car = await this.carRepository.findById(carId);
+    
+    if (!car) {
+      throw new Error('السيارة غير موجودة');
+    }
+    
+    // معايير البحث للسيارات المشابهة
+    const criteria = {
+      category: car.category,
+      make: car.make,
+      excludeId: carId,
+      priceRange: {
+        min: car.price * 0.8, // 80% من السعر
+        max: car.price * 1.2  // 120% من السعر
+      }
+    };
+    
+    // إضافة الحقول الجديدة للبحث عن سيارات مشابهة
+    if (car.fuel) {
+      criteria.fuel = car.fuel;
+    }
+    
+    if (car.transmission) {
+      criteria.transmission = car.transmission;
+    }
+    
+    // البحث عن سيارات مشابهة
+    const result = await this.carRepository.search(criteria, { page: 1, limit });
+    
+    return result.data;
+  }
+
+
+
+
+
+
+
+///////////////////////////////////////
+ 
 
   /**
    * الحصول على قائمة السيارات
@@ -51,32 +173,7 @@ class CarUseCases {
     return car;
   }
 
-  /**
-   * تحديث سيارة
-   * @param {number} id - معرف السيارة
-   * @param {Object} carData - بيانات التحديث
-   * @returns {Promise<Object>} - السيارة المحدثة
-   */
-  async updateCar(id, carData) {
-    // التحقق من وجود السيارة
-    const existingCar = await this.carRepository.findById(id);
-    
-    if (!existingCar) {
-      throw new Error('السيارة غير موجودة');
-    }
-    
-    // دمج البيانات الحالية مع التحديث
-    const updatedCarData = { ...existingCar, ...carData };
-    
-    // إنشاء كيان سيارة محدث
-    const updatedCar = new Car(updatedCarData);
-    
-    // التحقق من صحة البيانات
-    updatedCar.validate();
-    
-    // حفظ التحديث في قاعدة البيانات
-    return this.carRepository.update(id, updatedCar);
-  }
+
 
   /**
    * حذف سيارة
@@ -238,36 +335,7 @@ class CarUseCases {
     return this.carRepository.deleteSpecification(specId);
   }
 
-  /**
-   * الحصول على سيارات مشابهة
-   * @param {number} carId - معرف السيارة
-   * @param {number} limit - عدد السيارات
-   * @returns {Promise<Array>} - قائمة السيارات المشابهة
-   */
-  async getSimilarCars(carId, limit = 6) {
-    // الحصول على السيارة
-    const car = await this.carRepository.findById(carId);
-    
-    if (!car) {
-      throw new Error('السيارة غير موجودة');
-    }
-    
-    // معايير البحث للسيارات المشابهة
-    const criteria = {
-      category: car.category,
-      make: car.make,
-      excludeId: carId,
-      priceRange: {
-        min: car.price * 0.8, // 80% من السعر
-        max: car.price * 1.2  // 120% من السعر
-      }
-    };
-    
-    // البحث عن سيارات مشابهة
-    const result = await this.carRepository.search(criteria, { page: 1, limit });
-    
-    return result.data;
-  }
+
 }
 
 module.exports = CarUseCases;

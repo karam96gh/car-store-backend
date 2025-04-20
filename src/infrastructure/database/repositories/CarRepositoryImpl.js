@@ -7,39 +7,245 @@ const CarRepository = require('../../../core/domain/interfaces/CarRepository');
 const prisma = require('../prismaClient');
 
 class CarRepositoryImpl extends CarRepository {
-  /**
+
+
+
+ /**
    * إنشاء سيارة جديدة
    * @param {Object} carData - بيانات السيارة
    * @returns {Promise<Object>} - السيارة المنشأة
    */
-  async create(carData) {
-    try {
-      // استخراج المواصفات والصور إن وجدت
-      const { specifications = [], images = [], ...carInfo } = carData;
+ async create(carData) {
+  try {
+    // استخراج المواصفات والصور إن وجدت
+    const { specifications = [], images = [], dimensions, ...carInfo } = carData;
 
-      // إنشاء السيارة مع المواصفات والصور
-      const car = await prisma.car.create({
-        data: {
-          ...carInfo,
-          specifications: {
-            create: specifications
-          },
-          images: {
-            create: images
-          }
-        },
-        include: {
-          specifications: true,
-          images: true
-        }
-      });
-
-      return new Car(car);
-    } catch (error) {
-      console.error('خطأ في إنشاء السيارة:', error);
-      throw new Error(`فشل إنشاء السيارة: ${error.message}`);
+    // إعداد بيانات للحقول الجديدة من الأبعاد
+    const dimensionData = {};
+    if (dimensions) {
+      if (dimensions.length) dimensionData.dimensionLength = dimensions.length;
+      if (dimensions.width) dimensionData.dimensionWidth = dimensions.width;
+      if (dimensions.height) dimensionData.dimensionHeight = dimensions.height;
     }
+
+    // إنشاء السيارة مع المواصفات والصور
+    const car = await prisma.car.create({
+      data: {
+        ...carInfo,
+        ...dimensionData,
+        specifications: {
+          create: specifications
+        },
+        images: {
+          create: images
+        }
+      },
+      include: {
+        specifications: true,
+        images: true
+      }
+    });
+
+    // إعادة تشكيل الأبعاد في الكائن المُرجع
+    const reconstructedCar = {
+      ...car,
+      dimensions: dimensions ? {
+        length: car.dimensionLength,
+        width: car.dimensionWidth,
+        height: car.dimensionHeight
+      } : null
+    };
+
+    return new Car(reconstructedCar);
+  } catch (error) {
+    console.error('خطأ في إنشاء السيارة:', error);
+    throw new Error(`فشل إنشاء السيارة: ${error.message}`);
   }
+}
+
+/**
+ * الحصول على سيارة بواسطة المعرف
+ * @param {number} id - معرف السيارة
+ * @returns {Promise<Object|null>} - السيارة أو null إذا لم تكن موجودة
+ */
+async findById(id) {
+  try {
+    const car = await prisma.car.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        specifications: true,
+        images: true
+      }
+    });
+
+    if (!car) {
+      return null;
+    }
+
+    // إعادة بناء كائن الأبعاد
+    const dimensions = {};
+    if (car.dimensionLength) dimensions.length = car.dimensionLength;
+    if (car.dimensionWidth) dimensions.width = car.dimensionWidth;
+    if (car.dimensionHeight) dimensions.height = car.dimensionHeight;
+
+    const carWithDimensions = {
+      ...car,
+      dimensions: Object.keys(dimensions).length > 0 ? dimensions : null
+    };
+
+    return new Car(carWithDimensions);
+  } catch (error) {
+    console.error('خطأ في الحصول على السيارة:', error);
+    throw new Error(`فشل الحصول على السيارة: ${error.message}`);
+  }
+}
+
+/**
+ * تحديث سيارة
+ * @param {number} id - معرف السيارة
+ * @param {Object} carData - بيانات التحديث
+ * @returns {Promise<Object>} - السيارة المحدثة
+ */
+async update(id, carData) {
+  try {
+    // استخراج المواصفات والصور إن وجدت
+    const { specifications, images, dimensions, ...carInfo } = carData;
+    
+    // إعداد بيانات للحقول الجديدة من الأبعاد
+    const dimensionData = {};
+    if (dimensions) {
+      if (dimensions.length) dimensionData.dimensionLength = dimensions.length;
+      if (dimensions.width) dimensionData.dimensionWidth = dimensions.width;
+      if (dimensions.height) dimensionData.dimensionHeight = dimensions.height;
+    }
+    
+    // تحديث السيارة
+    const car = await prisma.car.update({
+      where: { id: parseInt(id) },
+      data: {
+        ...carInfo,
+        ...dimensionData,
+        // تحديث المواصفات إذا كانت موجودة
+        ...(specifications && {
+          specifications: {
+            // حذف المواصفات القديمة
+            deleteMany: {},
+            // إضافة المواصفات الجديدة
+            create: specifications
+          }
+        })
+      },
+      include: {
+        specifications: true,
+        images: true
+      }
+    });
+
+    // إعادة بناء كائن الأبعاد
+    const reconstructedDimensions = {};
+    if (car.dimensionLength) reconstructedDimensions.length = car.dimensionLength;
+    if (car.dimensionWidth) reconstructedDimensions.width = car.dimensionWidth;
+    if (car.dimensionHeight) reconstructedDimensions.height = car.dimensionHeight;
+
+    const carWithDimensions = {
+      ...car,
+      dimensions: Object.keys(reconstructedDimensions).length > 0 ? reconstructedDimensions : null
+    };
+
+    return new Car(carWithDimensions);
+  } catch (error) {
+    console.error('خطأ في تحديث السيارة:', error);
+    throw new Error(`فشل تحديث السيارة: ${error.message}`);
+  }
+}
+
+/**
+ * بناء معايير البحث
+ * @private
+ * @param {Object} criteria - معايير البحث
+ * @returns {Object} - معايير البحث
+ */
+_buildSearchCriteria(criteria) {
+  const where = this._buildWhereClause(criteria);
+
+  // البحث بالنص
+  if (criteria.searchText) {
+    where.OR = [
+      { title: { contains: criteria.searchText } },
+      { description: { contains: criteria.searchText } },
+      { make: { contains: criteria.searchText } },
+      { model: { contains: criteria.searchText } },
+      // إضافة البحث في الحقول الجديدة
+      { fuel: { contains: criteria.searchText } },
+      { transmission: { contains: criteria.searchText } },
+      { driveType: { contains: criteria.searchText } },
+      { engineSize: { contains: criteria.searchText } },
+      { exteriorColor: { contains: criteria.searchText } },
+      { origin: { contains: criteria.searchText } },
+      { vin: { contains: criteria.searchText } }
+    ];
+  }
+
+  // استثناء سيارة معينة
+  if (criteria.excludeId) {
+    where.id = {
+      not: parseInt(criteria.excludeId)
+    };
+  }
+
+  // إضافة فلترة لنوع الوقود
+  if (criteria.fuel) {
+    where.fuel = criteria.fuel;
+  }
+
+  // إضافة فلترة لناقل الحركة
+  if (criteria.transmission) {
+    where.transmission = criteria.transmission;
+  }
+
+  // إضافة فلترة لنوع الدفع
+  if (criteria.driveType) {
+    where.driveType = criteria.driveType;
+  }
+
+  // إضافة فلترة لعدد الأبواب
+  if (criteria.doors) {
+    where.doors = parseInt(criteria.doors);
+  }
+
+  // إضافة فلترة لبلد المنشأ
+  if (criteria.origin) {
+    where.origin = criteria.origin;
+  }
+
+  return where;
+}
+
+/**
+ * تنسيق نتائج البحث مع معالجة الأبعاد
+ * @private
+ * @param {Array} cars - نتائج البحث من قاعدة البيانات
+ * @returns {Array} - نتائج معالجة
+ */
+_formatSearchResults(cars) {
+  return cars.map(car => {
+    // إعادة بناء كائن الأبعاد
+    const dimensions = {};
+    if (car.dimensionLength) dimensions.length = car.dimensionLength;
+    if (car.dimensionWidth) dimensions.width = car.dimensionWidth;
+    if (car.dimensionHeight) dimensions.height = car.dimensionHeight;
+
+    const carWithDimensions = {
+      ...car,
+      dimensions: Object.keys(dimensions).length > 0 ? dimensions : null
+    };
+
+    return new Car(carWithDimensions);
+  });
+}
+
+
+
 
   /**
    * الحصول على كافة السيارات
@@ -97,70 +303,8 @@ class CarRepositoryImpl extends CarRepository {
     }
   }
 
-  /**
-   * الحصول على سيارة بواسطة المعرف
-   * @param {number} id - معرف السيارة
-   * @returns {Promise<Object|null>} - السيارة أو null إذا لم تكن موجودة
-   */
-  async findById(id) {
-    try {
-      const car = await prisma.car.findUnique({
-        where: { id: parseInt(id) },
-        include: {
-          specifications: true,
-          images: true
-        }
-      });
+ 
 
-      if (!car) {
-        return null;
-      }
-
-      return new Car(car);
-    } catch (error) {
-      console.error('خطأ في الحصول على السيارة:', error);
-      throw new Error(`فشل الحصول على السيارة: ${error.message}`);
-    }
-  }
-
-  /**
-   * تحديث سيارة
-   * @param {number} id - معرف السيارة
-   * @param {Object} carData - بيانات التحديث
-   * @returns {Promise<Object>} - السيارة المحدثة
-   */
-  async update(id, carData) {
-    try {
-      // استخراج المواصفات والصور إن وجدت
-      const { specifications, images, ...carInfo } = carData;
-      
-      // تحديث السيارة
-      const car = await prisma.car.update({
-        where: { id: parseInt(id) },
-        data: {
-          ...carInfo,
-          // تحديث المواصفات إذا كانت موجودة
-          ...(specifications && {
-            specifications: {
-              // حذف المواصفات القديمة
-              deleteMany: {},
-              // إضافة المواصفات الجديدة
-              create: specifications
-            }
-          })
-        },
-        include: {
-          specifications: true,
-          images: true
-        }
-      });
-  
-      return new Car(car);
-    } catch (error) {
-      console.error('خطأ في تحديث السيارة:', error);
-      throw new Error(`فشل تحديث السيارة: ${error.message}`);
-    }
-  }
 
   /**
    * حذف سيارة
@@ -488,34 +632,7 @@ class CarRepositoryImpl extends CarRepository {
     return where;
   }
 
-  /**
-   * بناء معايير البحث
-   * @private
-   * @param {Object} criteria - معايير البحث
-   * @returns {Object} - معايير البحث
-   */
-  _buildSearchCriteria(criteria) {
-    const where = this._buildWhereClause(criteria);
-
-    // البحث بالنص
-    if (criteria.searchText) {
-      where.OR = [
-        { title: { contains: criteria.searchText } },
-        { description: { contains: criteria.searchText } },
-        { make: { contains: criteria.searchText } },
-        { model: { contains: criteria.searchText } }
-      ];
-    }
-
-    // استثناء سيارة معينة
-    if (criteria.excludeId) {
-      where.id = {
-        not: parseInt(criteria.excludeId)
-      };
-    }
-
-    return where;
-  }
+  
 
   /**
    * بناء معايير الترتيب
