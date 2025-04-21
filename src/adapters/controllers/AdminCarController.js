@@ -22,6 +22,7 @@ class AdminCarController {
       const car = await this.carUseCases.createCar(carData);
 
       res.status(201).json({
+        
         success: true,
         message: 'تم إنشاء السيارة بنجاح',
         data: car
