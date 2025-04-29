@@ -1,3 +1,4 @@
+// src/interfaces/routes/index.js
 /**
  * إعداد مسارات التطبيق
  * يتم تجميع جميع المسارات هنا
@@ -7,6 +8,7 @@ const setupCarRoutes = require('./carRoutes');
 const setupAdminRoutes = require('./adminRoutes');
 const setupStaticContentRoutes = require('./staticContentRoutes');
 const setupStatisticsRoutes = require('./statisticsRoutes');
+const setupBrandRoutes = require('./brandRoutes'); // إضافة مسارات العلامات التجارية
 
 const { authenticateJWT, isAdmin } = require('../middlewares/authMiddleware');
 
@@ -21,6 +23,7 @@ const setupRoutes = (app) => {
   // إعداد المسارات
   app.use('/api/auth', setupAuthRoutes(context.authController));
   app.use('/api/cars', setupCarRoutes(context.carController));
+  app.use('/api/brands', setupBrandRoutes(context.brandController)); // إضافة مسارات العلامات التجارية
   app.use('/api/admin', authenticateJWT, isAdmin, setupAdminRoutes(
     context.adminCarController,
     context.adminUserController,
@@ -37,6 +40,21 @@ const setupRoutes = (app) => {
       message: 'الخادم يعمل بشكل جيد',
       timestamp: new Date()
     });
+  });
+
+  // مسار للحصول على أحدث السيارات
+  app.get('/api/latest-cars', async (req, res, next) => {
+    try {
+      const { limit = 10 } = req.query;
+      const latestCars = await context.carUseCases.getCars({}, { page: 1, limit: parseInt(limit) });
+      
+      res.status(200).json({
+        success: true,
+        data: latestCars.data
+      });
+    } catch (error) {
+      next(error);
+    }
   });
 
   // التعامل مع المسارات غير الموجودة

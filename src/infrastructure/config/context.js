@@ -1,3 +1,4 @@
+// src/infrastructure/config/context.js
 /**
  * سياق التطبيق
  * يتم تهيئة جميع الخدمات والمستودعات وحالات الاستخدام والمتحكمات هنا
@@ -9,6 +10,7 @@ const UserRepositoryImpl = require('../database/repositories/UserRepositoryImpl'
 const StaticPageRepositoryImpl = require('../database/repositories/StaticPageRepositoryImpl');
 const PromotionRepositoryImpl = require('../database/repositories/PromotionRepositoryImpl');
 const StatisticsRepositoryImpl = require('../database/repositories/StatisticsRepositoryImpl');
+const BrandRepositoryImpl = require('../database/repositories/BrandRepositoryImpl'); // إضافة مستودع العلامات التجارية
 
 // استيراد الخدمات
 const FileStorageService = require('../storage/FileStorageService');
@@ -18,6 +20,7 @@ const CarUseCases = require('../../core/usecases/CarUseCases');
 const UserUseCases = require('../../core/usecases/UserUseCases');
 const StaticContentUseCases = require('../../core/usecases/StaticContentUseCases');
 const StatisticsUseCases = require('../../core/usecases/StatisticsUseCases');
+const BrandUseCases = require('../../core/usecases/BrandUseCases'); // إضافة حالة استخدام العلامات التجارية
 
 // استيراد المتحكمات
 const AuthController = require('../../adapters/controllers/AuthController');
@@ -26,6 +29,7 @@ const AdminCarController = require('../../adapters/controllers/AdminCarControlle
 const AdminUserController = require('../../adapters/controllers/AdminUserController');
 const StaticContentController = require('../../adapters/controllers/StaticContentController');
 const StatisticsController = require('../../adapters/controllers/StatisticsController');
+const BrandController = require('../../adapters/controllers/BrandController'); // إضافة متحكم العلامات التجارية
 
 // إنشاء المستودعات
 const carRepository = new CarRepositoryImpl();
@@ -33,6 +37,7 @@ const userRepository = new UserRepositoryImpl();
 const staticPageRepository = new StaticPageRepositoryImpl();
 const promotionRepository = new PromotionRepositoryImpl();
 const statisticsRepository = new StatisticsRepositoryImpl();
+const brandRepository = new BrandRepositoryImpl(); // إنشاء مستودع العلامات التجارية
 
 // إنشاء الخدمات
 const fileStorageService = new FileStorageService();
@@ -42,6 +47,7 @@ const carUseCases = new CarUseCases(carRepository, fileStorageService);
 const userUseCases = new UserUseCases(userRepository);
 const staticContentUseCases = new StaticContentUseCases(staticPageRepository, promotionRepository, fileStorageService);
 const statisticsUseCases = new StatisticsUseCases(statisticsRepository, carRepository, userRepository);
+const brandUseCases = new BrandUseCases(brandRepository); // إنشاء حالة استخدام العلامات التجارية
 
 // إنشاء المتحكمات
 const authController = new AuthController(userUseCases);
@@ -50,6 +56,7 @@ const adminCarController = new AdminCarController(carUseCases);
 const adminUserController = new AdminUserController(userUseCases);
 const staticContentController = new StaticContentController(staticContentUseCases);
 const statisticsController = new StatisticsController(statisticsUseCases);
+const brandController = new BrandController(brandUseCases); // إنشاء متحكم العلامات التجارية
 
 // تصدير السياق
 module.exports = {
@@ -59,6 +66,7 @@ module.exports = {
   staticPageRepository,
   promotionRepository,
   statisticsRepository,
+  brandRepository, // تصدير مستودع العلامات التجارية
 
   // الخدمات
   fileStorageService,
@@ -68,6 +76,7 @@ module.exports = {
   userUseCases,
   staticContentUseCases,
   statisticsUseCases,
+  brandUseCases, // تصدير حالة استخدام العلامات التجارية
 
   // المتحكمات
   authController,
@@ -75,5 +84,6 @@ module.exports = {
   adminCarController,
   adminUserController,
   staticContentController,
-  statisticsController
+  statisticsController,
+  brandController // تصدير متحكم العلامات التجارية
 };
