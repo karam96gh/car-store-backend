@@ -6,6 +6,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
 const { setupConfig } = require('./infrastructure/config/config');
+require('dotenv').config();
 
 // تحميل متغيرات البيئة
 setupConfig();
