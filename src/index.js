@@ -1,12 +1,13 @@
 /**
  * نقطة الدخول الرئيسية لتطبيق متجر السيارات
  */
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
 const { setupConfig } = require('./infrastructure/config/config');
-require('dotenv').config();
 
 // تحميل متغيرات البيئة
 setupConfig();
