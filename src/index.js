@@ -36,7 +36,19 @@ setupRoutes(app);
 
 // إعداد ميدلوير معالجة الأخطاء
 app.use(errorMiddleware);
+// قم بإضافة هذا الكود في بداية ملف index.js للتأكد من المسارات الصحيحة
 
+console.log('=== معلومات تشغيل التطبيق ===');
+console.log('المسار الحالي للعمل:', process.cwd());
+console.log('مسار المجلد الحالي للسكريبت:', __dirname);
+console.log('مسار الملف الحالي:', __filename);
+console.log('--- متغيرات البيئة ---');
+console.log('DATABASE_URL:', process.env.DATABASE_URL || 'غير محدد');
+console.log('JWT_SECRET:', process.env.JWT_SECRET ? '[محدد]' : 'غير محدد');
+console.log('NODE_ENV:', process.env.NODE_ENV || 'غير محدد');
+console.log('PORT:', process.env.PORT || 'غير محدد');
+console.log('UPLOAD_DIR:', process.env.UPLOAD_DIR || 'غير محدد');
+console.log('============================');
 // تشغيل الخادم
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
