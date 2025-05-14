@@ -27,7 +27,7 @@ const carData = {
     'models': [
       'E200', 'C-Class', 'S-Class', 'GLA', 'GLE',
       'A-Class', 'B-Class', 'CLS', 'GLC', 'GLS',
-      'SL', 'SLK', 'AMG GT', 'CLK', 'EQC',
+      'SL', 'SLK', 'AMG GT', 'CLK', 'EQC','E300','E350',
       '190E', '300SL', '600', 'Maybach', 'Sprinter'
     ],
   },
