@@ -20,15 +20,15 @@ const setupAuthRoutes = (authController) => {
    * @param {Object} userData - بيانات المستخدم
    * @returns {Object} - المستخدم المنشأ مع التوكن
    */
-  router.post('/register', authController.register.bind(authController));
+  // router.post('/register', authController.register.bind(authController));
 
-  /**
-   * تسجيل الدخول
-   * @route POST /api/auth/login
-   * @group المصادقة - عمليات المصادقة
-   * @param {Object} credentials - بيانات الدخول
-   * @returns {Object} - المستخدم مع التوكن
-   */
+  // /**
+  //  * تسجيل الدخول
+  //  * @route POST /api/auth/login
+  //  * @group المصادقة - عمليات المصادقة
+  //  * @param {Object} credentials - بيانات الدخول
+  //  * @returns {Object} - المستخدم مع التوكن
+  //  */
   router.post('/login', authController.login.bind(authController));
 
   /**

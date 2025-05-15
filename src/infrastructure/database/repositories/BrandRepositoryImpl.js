@@ -1,11 +1,10 @@
-
 // src/infrastructure/database/repositories/BrandRepositoryImpl.js
 const CarBrand = require('../../../core/domain/entities/CarBrand');
 
 // بيانات البراندات المستوردة من تطبيق Flutter
 const carData = {
   'Toyota': {
-    'logo': 'https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/thumb/toyota.png',
+    'logo': 'http://62.171.153.198:3995/uploads/car-images/toyota.png',
     'models': [
       'Camry', 'Corolla', 'RAV4', 'Land Cruiser', 'Yaris',
       'Prius', 'Hilux', 'Tacoma', '4Runner', 'Highlander',
@@ -14,7 +13,7 @@ const carData = {
     ],
   },
   'BMW': {
-    'logo': 'https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/thumb/bmw.png',
+    'logo': 'http://62.171.153.198:3995/uploads/car-images/bmw.png',
     'models': [
       'X5', 'X3', '3 Series', '5 Series', '7 Series',
       'X1', 'X7', 'M3', 'M5', 'Z4',
@@ -23,7 +22,7 @@ const carData = {
     ],
   },
   'Mercedes-Benz': {
-    'logo': 'https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/thumb/mercedes-benz.png',
+    'logo': 'http://62.171.153.198:3995/uploads/car-images/mercedes-benz.png',
     'models': [
       'E200', 'C-Class', 'S-Class', 'GLA', 'GLE',
       'A-Class', 'B-Class', 'CLS', 'GLC', 'GLS',
@@ -32,7 +31,7 @@ const carData = {
     ],
   },
   'Chevrolet': {
-    'logo': 'https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/thumb/chevrolet.png',
+    'logo': 'http://62.171.153.198:3995/uploads/car-images/chevrolet.png',
     'models': [
       'Camaro', 'Corvette', 'Impala', 'Malibu', 'Silverado',
       'Tahoe', 'Suburban', 'Equinox', 'Traverse', 'Cruze',
@@ -41,7 +40,7 @@ const carData = {
     ],
   },
   'Hyundai': {
-    'logo': 'https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/thumb/hyundai.png',
+    'logo': 'http://62.171.153.198:3995/uploads/car-images/hyundai.png',
     'models': [
       'Tucson', 'Sonata', 'Elantra', 'Santa Fe', 'Accent',
       'Kona', 'Palisade', 'Veloster', 'Genesis Coupe', 'i10',
@@ -50,7 +49,7 @@ const carData = {
     ],
   },
   'Kia': {
-    'logo': 'https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/thumb/kia.png',
+    'logo': 'http://62.171.153.198:3995/uploads/car-images/kia.png',
     'models': [
       'Sportage', 'Cerato', 'Sorento', 'Picanto', 'Rio',
       'Optima', 'Carnival', 'Stinger', 'Telluride', 'Seltos',
@@ -59,7 +58,7 @@ const carData = {
     ],
   },
   'Audi': {
-    'logo': 'https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/thumb/audi.png',
+    'logo': 'http://62.171.153.198:3995/uploads/car-images/audi.png',
     'models': [
       'A4', 'A6', 'Q5', 'Q7', 'A8',
       'A3', 'A5', 'Q3', 'Q8', 'TT',
@@ -68,7 +67,7 @@ const carData = {
     ],
   },
   'KGM (Ssangyong)': {
-    'logo': 'https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/thumb/ssangyong.png',
+    'logo': 'http://62.171.153.198:3995/uploads/car-images/ssangyong.png',
     'models': [
       'Rexton', 'Tivoli', 'Korando', 'Musso', 'Actyon',
       'Chairman', 'Stavic', 'Rodius', 'Korando Sports', 'XLV',
@@ -76,7 +75,7 @@ const carData = {
     ],
   },
   'Genesis': {
-    'logo': 'https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/thumb/genesis.png',
+    'logo': 'http://62.171.153.198:3995/uploads/car-images/genesis.png',
     'models': [
       'G70', 'G80', 'G90', 'GV70', 'GV80',
       'GV60', 'EQ900', 'Mint', 'Essentia', 'X',
@@ -84,7 +83,7 @@ const carData = {
     ],
   },
   'Renault': {
-    'logo': 'https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/thumb/renault.png',
+    'logo': 'http://62.171.153.198:3995/uploads/car-images/renault.png',
     'models': [
       'Clio', 'Megane', 'Captur', 'Kadjar', 'Duster',
       'Talisman', 'Koleos', 'Zoe', 'Twingo', 'Laguna',
@@ -93,7 +92,7 @@ const carData = {
     ],
   },
   'Jeep': {
-    'logo': 'https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/thumb/jeep.png',
+    'logo': 'http://62.171.153.198:3995/uploads/car-images/jeep.png',
     'models': [
       'Wrangler', 'Grand Cherokee', 'Cherokee', 'Compass', 'Renegade',
       'Gladiator', 'Liberty', 'Patriot', 'Commander', 'Wagoneer',
@@ -102,7 +101,7 @@ const carData = {
     ],
   },
   'Porsche': {
-    'logo': 'https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/thumb/porsche.png',
+    'logo': 'http://62.171.153.198:3995/uploads/car-images/porsche.png',
     'models': [
       '911', 'Cayenne', 'Panamera', 'Macan', 'Taycan',
       'Boxster', 'Cayman', '918 Spyder', '356', '928',
@@ -111,7 +110,7 @@ const carData = {
     ],
   },
   'Volkswagen': {
-    'logo': 'https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/thumb/volkswagen.png',
+    'logo': 'http://62.171.153.198:3995/uploads/car-images/volkswagen.png',
     'models': [
       'Golf', 'Passat', 'Tiguan', 'Jetta', 'Polo',
       'Arteon', 'Atlas', 'Beetle', 'ID.4', 'Touareg',
@@ -120,7 +119,7 @@ const carData = {
     ],
   },
   'Land Rover': {
-    'logo': 'https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/thumb/land rover.png',
+    'logo': 'http://62.171.153.198:3995/uploads/car-images/land-rover.png',
     'models': [
       'Range Rover', 'Discovery', 'Defender', 'Range Rover Sport', 'Range Rover Evoque',
       'Range Rover Velar', 'Freelander', 'Discovery Sport', 'Series I', 'Series II',
@@ -129,7 +128,7 @@ const carData = {
     ],
   },
   'Mini': {
-    'logo': 'https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/thumb/mini.png',
+    'logo': 'http://62.171.153.198:3995/uploads/car-images/mini.png',
     'models': [
       'Cooper', 'Countryman', 'Clubman', 'Paceman', 'Convertible',
       'Coupe', 'Roadster', 'John Cooper Works', 'GP', 'Electric',
@@ -138,7 +137,7 @@ const carData = {
     ],
   },
   'Honda': {
-    'logo': 'https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/thumb/honda.png',
+    'logo': 'http://62.171.153.198:3995/uploads/car-images/honda.png',
     'models': [
       'Civic', 'Accord', 'CR-V', 'Pilot', 'Odyssey',
       'Fit', 'HR-V', 'Ridgeline', 'Passport', 'Insight',
@@ -147,7 +146,7 @@ const carData = {
     ],
   },
   'Lexus': {
-    'logo': 'https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/thumb/lexus.png',
+    'logo': 'http://62.171.153.198:3995/uploads/car-images/lexus.png',
     'models': [
       'ES', 'RX', 'NX', 'LS', 'GX',
       'LX', 'UX', 'LC', 'RC', 'IS',
@@ -156,7 +155,7 @@ const carData = {
     ],
   },
   'Ford': {
-    'logo': 'https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/thumb/ford.png',
+    'logo': 'http://62.171.153.198:3995/uploads/car-images/ford.png',
     'models': [
       'F-150', 'Mustang', 'Explorer', 'Focus', 'Escape',
       'Ranger', 'Edge', 'Fiesta', 'Bronco', 'Expedition',
@@ -165,7 +164,7 @@ const carData = {
     ],
   },
   'Nissan': {
-    'logo': 'https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/thumb/nissan.png',
+    'logo': 'http://62.171.153.198:3995/uploads/car-images/nissan.png',
     'models': [
       'Altima', 'Maxima', 'Rogue', 'Sentra', 'Pathfinder',
       'Murano', 'Frontier', 'Titan', '370Z', 'GT-R',
@@ -174,7 +173,7 @@ const carData = {
     ],
   },
   'Volvo': {
-    'logo': 'https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/thumb/volvo.png',
+    'logo': 'http://62.171.153.198:3995/uploads/car-images/volvo.png',
     'models': [
       'XC90', 'XC60', 'XC40', 'S90', 'S60',
       'V90', 'V60', 'V40', '240', '740',
@@ -183,7 +182,7 @@ const carData = {
     ],
   },
   'Peugeot': {
-    'logo': 'https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/thumb/peugeot.png',
+    'logo': 'http://62.171.153.198:3995/uploads/car-images/peugeot.png',
     'models': [
       '208', '308', '508', '2008', '3008',
       '5008', '108', '407', '607', 'RCZ',
@@ -192,7 +191,7 @@ const carData = {
     ],
   },
   'Tesla': {
-    'logo': 'https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/thumb/tesla.png',
+    'logo': 'http://62.171.153.198:3995/uploads/car-images/tesla.png',
     'models': [
       'Model S', 'Model 3', 'Model X', 'Model Y', 'Cybertruck',
       'Roadster', 'Semi', 'Model S Plaid', 'Model X Plaid', 'Model 3 Performance',
@@ -201,7 +200,7 @@ const carData = {
     ],
   },
   'Maserati': {
-    'logo': 'https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/thumb/maserati.png',
+    'logo': 'http://62.171.153.198:3995/uploads/car-images/maserati.png',
     'models': [
       'Ghibli', 'Quattroporte', 'Levante', 'GranTurismo', 'MC20',
       'GranCabrio', '3200 GT', 'Coupe', 'Spyder', 'Bora',
@@ -210,7 +209,7 @@ const carData = {
     ],
   },
   'Suzuki': {
-    'logo': 'https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/thumb/suzuki.png',
+    'logo': 'http://62.171.153.198:3995/uploads/car-images/suzuki.png',
     'models': [
       'Swift', 'Vitara', 'Jimny', 'Baleno', 'Celerio',
       'Ignis', 'SX4', 'Alto', 'Wagon R', 'Kizashi',
