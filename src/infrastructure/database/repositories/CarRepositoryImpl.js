@@ -599,8 +599,8 @@ _formatSearchResults(cars) {
       where.category = filters.category;
     }
 
-    if (filters.make) {
-      where.make = filters.make;
+    if (filters.brandId) {
+      where.make = filters.brandId;
     }
 
     if (filters.model) {
