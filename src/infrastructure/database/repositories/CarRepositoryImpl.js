@@ -600,7 +600,7 @@ _formatSearchResults(cars) {
     }
 
     if (filters.brandId) {
-      where.make = filters.brandId;
+      where.make = filters.brandId.trim();
     }
 
     if (filters.model) {
