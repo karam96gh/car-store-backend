@@ -16,7 +16,7 @@ class CarController {
      */
     async getCars(req, res, next) {
       try {
-        const { page = 1, limit = 10, type, category, make, model, year, 
+        const { page = 1, limit = 10, type, category, brandId, model, year, 
                 yearMin, yearMax, priceMin, priceMax, orderBy } = req.query;
   
         // إعداد مرشحات البحث
@@ -24,7 +24,7 @@ class CarController {
         
         if (type) filters.type = type;
         if (category) filters.category = category;
-        if (make) filters.make = make;
+        if (brandId) filters.brandId = brandId;
         if (model) filters.model = model;
         if (year) filters.year = parseInt(year);
         
