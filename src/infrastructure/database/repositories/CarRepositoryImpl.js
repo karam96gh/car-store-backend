@@ -628,7 +628,7 @@ _formatSearchResults(cars) {
     if (filters.isFeatured !== undefined) {
       where.isFeatured = filters.isFeatured;
     }
-
+     console.log(where);
     return where;
   }
 
