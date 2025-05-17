@@ -16,7 +16,7 @@ class CarController {
      */
     async getCars(req, res, next) {
       try {
-        const { page = 1, limit = 10, type, category, brandId, model, year, 
+        const { page = 1, limit = 1000, type, category, brandId, model, year, 
                 yearMin, yearMax, priceMin, priceMax, orderBy } = req.query;
   
         // إعداد مرشحات البحث
@@ -71,7 +71,7 @@ class CarController {
      */
     async searchCars(req, res, next) {
       try {
-        const { page = 1, limit = 10, searchText, type, category, make, model, 
+        const { page = 1, limit = 1000, searchText, type, category, make, model, 
                 yearMin, yearMax, priceMin, priceMax, orderBy } = req.query;
   
         // إعداد معايير البحث
@@ -164,7 +164,7 @@ class CarController {
      */
     async getFeaturedCars(req, res, next) {
       try {
-        const { limit = 10 } = req.query;
+        const { limit = 1000 } = req.query;
         
         // الحصول على السيارات المميزة
         const featuredCars = await this.carUseCases.getFeaturedCars(parseInt(limit));
@@ -186,7 +186,7 @@ class CarController {
      */
     async getMostViewedCars(req, res, next) {
       try {
-        const { limit = 10 } = req.query;
+        const { limit = 1000 } = req.query;
         
         // الحصول على السيارات الأكثر مشاهدة
         const mostViewedCars = await this.carUseCases.getMostViewedCars(parseInt(limit));
@@ -284,7 +284,7 @@ class CarController {
     async getFavorites(req, res, next) {
       try {
         const userId = req.user.id;
-        const { page = 1, limit = 10 } = req.query;
+        const { page = 1, limit = 1000 } = req.query;
         
         // خيارات التصفح
         const pagination = {
@@ -399,7 +399,7 @@ class CarController {
     async getBrowserHistory(req, res, next) {
       try {
         const userId = req.user.id;
-        const { page = 1, limit = 10 } = req.query;
+        const { page = 1, limit = 1000 } = req.query;
         
         // خيارات التصفح
         const pagination = {
